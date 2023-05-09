@@ -1,4 +1,4 @@
-#!/bin/env sh
+#!/bin/bash
 
 set -xeuf -o pipefail
 

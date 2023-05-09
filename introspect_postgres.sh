@@ -1,10 +1,6 @@
-#!/bin/env sh
+#!/bin/bash
 
 set -xeuf -o pipefail
-
-url="$1"
-
-domain=$(echo "$url" | awk -F/ '{print $3}')
 
 dir="results/postgres"
 

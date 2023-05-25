@@ -16,42 +16,45 @@ then
    exit 1
 fi
 
+script_base=$(dirname "${BASH_SOURCE[0]}")
 
-source introspect_postgres.sh
-source introspect_remote.sh
+source "$script_base/introspect_postgres.sh"
+source "$script_base/introspect_remote.sh"
 
-echo '{"backend_introspection":{' > results/introspection.json
+build_name="$script_base/results/introspection.json"
+
+echo '{"backend_introspection":{' > "$build_name"
 
 ### write DB introspection
 
 separator=''
 for db in "$databases"
 do
-    echo "$separator"'"'"$db"'":{"pg":{"metadata":{"tables":' >> results/introspection.json
-    tail -n+2 "results/pg/$db/tables.json"|head -n-1 |tr -d '\n'|jq 'map([.table_name,.info])' >> results/introspection.json
-    echo ',"functions":' >> results/introspection.json
-    tail -n+2 "results/pg/$db/functions.json"|head -n-1 |tr -d '\n'|jq 'map([.function_name,.info])' >> results/introspection.json
-    echo ',"scalars":[]},"enum_values":[]}}' >> results/introspection.json
+    echo "$separator"'"'"$db"'":{"pg":{"metadata":{"tables":' >> "$build_name"
+    tail -n+2 "$script_base/results/pg/$db/tables.json"|head -n-1 |tr -d '\n'|jq 'map([.table_name,.info])' >> "$build_name"
+    echo ',"functions":' >> "$build_name"
+    tail -n+2 "$script_base/results/pg/$db/functions.json"|head -n-1 |tr -d '\n'|jq 'map([.function_name,.info])' >> "$build_name"
+    echo ',"scalars":[]},"enum_values":[]}}' >> "$build_name"
     separator=','
 done
 
-echo '}' >> results/introspection.json
+echo '}' >> "$build_name"
 
 ### write RS introspection
-echo ',"remotes":{' >> results/introspection.json
+echo ',"remotes":{' >> "$build_name"
 
 separator=''
 for rs in "$remotes"
 do
-    echo "\"$rs\":" >> results/introspection.json
-    cat "results/remotes/$rs.json" >> results/introspection.json
-    echo "$separator" >> results/introspection.json
+    echo "\"$rs\":" >> "$build_name"
+    cat "$script_base/results/remotes/$rs.json" >> "$build_name"
+    echo "$separator" >> "$build_name"
     separator=','
 done
 
-echo '}' >> results/introspection.json
+echo '}' >> "$build_name"
 
 ### finish
-echo '}' >> results/introspection.json
+echo '}' >> "$build_name"
 
-jq . < results/introspection.json 1>/dev/null && echo "Result looks good! See results/introspection.json"
+jq . < "$build_name" 1>/dev/null && echo "Result looks good! See $script_base/results/introspection.json"

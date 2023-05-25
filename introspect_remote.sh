@@ -4,7 +4,9 @@ set -euf -o pipefail
 
 metadata="$1"
 
-basedir=results/remotes
+script_base=$(dirname "${BASH_SOURCE[0]}")
+
+basedir="$script_base/results/remotes"
 
 if [ -d "$basedir" ]
 then
@@ -21,7 +23,7 @@ remotes=()
 for i in $(seq 1 "$num_remotes")
 do
     remote_name=$(jq ".metadata.remote_schemas[$i-1].name" -r < "$metadata")
-    filename="results/remotes/$remote_name.json"
+    filename="$basedir/$remote_name.json"
     echo "Introspecting remote $i called $remote_name..."
     url=$(jq ".metadata.remote_schemas[$i-1].definition.url" -r < "$metadata")
     curl_headers_list=$(jq ".metadata.remote_schemas[$i-1].definition.headers|map(\"\(.name): \(.value)\")|.[]" -rc < "$metadata")
@@ -36,9 +38,11 @@ do
          -q \
          -X POST \
          -H 'content-type: application/json' \
-         --data-binary "@remote-schema.json" \
+         --data-binary "@$script_base/remote-schema.json" \
          -o "$filename" \
          "${curl_headers[@]}"
+    jq . < "$filename" > /dev/null || (echo "ERROR: Syntax error in fetched introspection" && exit 1)
+    jq 'error(.error)' < "$filename"
     echo "Introspection stored at $filename"
     remotes+=("$remote_name")
 done

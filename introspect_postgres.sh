@@ -4,7 +4,9 @@ set -euf -o pipefail
 
 metadata="$1"
 
-basedir=results/pg
+script_base=$(dirname "${BASH_SOURCE[0]}")
+
+basedir="$script_base/results/pg"
 
 if [ -d "$basedir" ]
 then
@@ -23,8 +25,8 @@ do
     echo "Introspecting DB $db_name..."
     dir="$basedir/$db_name"
     mkdir -p "$dir"
-    psql "$db_url" -f pg_table_metadata.sql -o "$dir/tables.json" -A
-    psql "$db_url" -f pg_function_metadata.sql -o "$dir/functions.json" -A
+    psql "$db_url" -f "$script_base/pg_table_metadata.sql" -o "$dir/tables.json" -A
+    psql "$db_url" -f "$script_base/pg_function_metadata.sql" -o "$dir/functions.json" -A
     echo "Introspection stored in $dir/"
     databases+=("$db_name")
 done <<< "$databases_urls"

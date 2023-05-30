@@ -46,9 +46,8 @@ echo ',"remotes":{' >> "$build_name"
 separator=''
 for rs in "$remotes"
 do
-    echo "\"$rs\":" >> "$build_name"
+    echo "$separator\"$rs\":" >> "$build_name"
     cat "$script_base/results/remotes/$rs.json" >> "$build_name"
-    echo "$separator" >> "$build_name"
     separator=','
 done
 
